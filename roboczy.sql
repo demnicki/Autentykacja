@@ -18,7 +18,7 @@ END;
 DECLARE
 	z_tablica_json JSON_ARRAY_T;
 BEGIN
-	kurs.walut.pobierz_nbp(tablica_json => z_tablica_json);
+	kurs_walut.pobierz_nbp(tablica_json => z_tablica_json);
 	dbms_output.put_line(z_tablica_json.to_string);
 EXCEPTION
 	WHEN others THEN
