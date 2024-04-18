@@ -1,0 +1,4 @@
+CREATE OR REPLACE PACKAGE BODY kurs_walut
+IS
+
+END kurs_walut;
