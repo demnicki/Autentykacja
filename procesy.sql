@@ -31,7 +31,7 @@ DECLARE
 o_komunikatu CHAR(50 CHAR) := '<p>Przegl¹darka internetowa u¿ytkownika to: <b>';
 z_komunikatu CHAR(10 CHAR) := '</b>.</p>';
 BEGIN
-htp.p(o_komunikatu||owa_util.get_cgi_env('HTTP_USER_AGENT')||z_komunikatu);
+htp.p(o_komunikatu||autentykacja.przegl(owa_util.get_cgi_env('HTTP_USER_AGENT'))||z_komunikatu);
 END;
 
 /* Kontent dynamiczny wyœwietlenia systemu operacyjnego u¿ytkownika. */
@@ -39,7 +39,7 @@ DECLARE
 o_komunikatu CHAR(50 CHAR) := '<p>System operacyjny u¿ytkownika to: <b>';
 z_komunikatu CHAR(10 CHAR) := '</b>.</p>';
 BEGIN
-htp.p(o_komunikatu||owa_util.get_cgi_env('HTTP_USER_AGENT')||z_komunikatu);
+htp.p(o_komunikatu||autentykacja.sys_op(owa_util.get_cgi_env('HTTP_USER_AGENT'))||z_komunikatu);
 END;
 
 /* Kontent dynamiczny wyœwietlenia jêzyka systemowego u¿ytkownika. */
@@ -47,5 +47,5 @@ DECLARE
 o_komunikatu CHAR(50 CHAR) := '<p>Preferowany jêzyk u¿ytkownika to: <b>';
 z_komunikatu CHAR(10 CHAR) := '</b>.</p>';
 BEGIN
-htp.p(o_komunikatu||owa_util.get_cgi_env('HTTP_ACCEPT_LANGUAGE')||z_komunikatu);
+htp.p(o_komunikatu||autentykacja.jezyk(owa_util.get_cgi_env('HTTP_ACCEPT_LANGUAGE'))||z_komunikatu);
 END;
