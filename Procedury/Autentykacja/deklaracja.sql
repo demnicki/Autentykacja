@@ -5,13 +5,17 @@ IS
 	PROCEDURE utworzenie_nowego_uzytk(
 		a_login_email IN VARCHAR2,
 		a_nazwa_uzytk IN VARCHAR2,
-		w_czy_udany OUT BOOLEAN,
+		a_ip          IN VARCHAR2,
+		a_agent       IN VARCHAR2,
+		w_czy_udany   OUT BOOLEAN,
 		w_token_sesji OUT CHAR
 	);
 
 	PROCEDURE log_uzytk(
 		a_login_email IN VARCHAR2,
-		w_czy_udany OUT BOOLEAN,
+		a_ip          IN VARCHAR2,
+		a_agent       IN VARCHAR2,
+		w_czy_udany   OUT BOOLEAN,
 		w_token_sesji OUT CHAR
 	);
 

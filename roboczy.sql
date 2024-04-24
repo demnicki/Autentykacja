@@ -1,16 +1,24 @@
 ﻿/* Podstawowa forma. */
 
 DECLARE
-
+	z_czy_udany BOOLEAN;
+	z_token_sesji VARCHAR2(100 CHAR);
 BEGIN
-	SAVEPOINT aa;
-
-	COMMIT;
-	dbms_output.put_line('');
+		autentykacja.log_uzytk(
+			a_login_email => 'adam@wp.pl',
+			a_ip => '111',
+			a_agent => 'kom',
+			w_czy_udany => z_czy_udany,
+			w_token_sesji => z_token_sesji
+		);
+	IF z_czy_udany THEN
+		dbms_output.put_line('Udało się');
+	ELSE
+		dbms_output.put_line('Nie udało się');
+	END IF;
 EXCEPTION
 	WHEN others THEN
-		ROLLBACK TO aa;
-		 dbms_output.put_line('');
+		 dbms_output.put_line('Nie udało się');
 END;
 
 /* Praca nad ....*/

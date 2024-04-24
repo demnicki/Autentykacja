@@ -3,42 +3,97 @@ IS
 	PROCEDURE utworzenie_nowego_uzytk(
 		a_login_email IN VARCHAR2,
 		a_nazwa_uzytk IN VARCHAR2,
-		w_czy_udany OUT BOOLEAN,
+		a_ip          IN VARCHAR2,
+		a_agent       IN VARCHAR2,
+		w_czy_udany   OUT BOOLEAN,
 		w_token_sesji OUT CHAR
 	)
 	IS
+		z_id          uzytkownicy.id%TYPE;
+		z_token_sesji uzytkownicy.token_sesji%TYPE;
 	BEGIN
-		NULL;
+		w_czy_udany := FALSE;
+		w_token_sesji := 'Pusty.';
+		IF (instr(a_login_email, '@') != 0) AND (instr(a_login_email, '.') != 0) THEN
+			z_token_sesji := substr(dbms_random.string('A', dbms_random.value(32, 32)), 0, 32);
+			INSERT INTO uzytkownicy (email, nazwa_uzytkownika, typ_uprawnien, token_sesji, czas_wyg_sesji) VALUES
+				(a_login_email, a_nazwa_uzytk, 'c', z_token_sesji, current_timestamp + interval '20' minute);
+			COMMIT;
+			SELECT id INTO z_id FROM uzytkownicy WHERE email = a_login_email;
+			INSERT INTO logi (id_uzytk, czy_udany, ip, agent) VALUES
+				(z_id, 't', a_ip, a_agent);
+			COMMIT;
+			w_czy_udany := TRUE;
+			w_token_sesji := z_token_sesji;
+		END IF;
 	EXCEPTION
 			WHEN others THEN
-			NULL;
+			ROLLBACK;
+			w_czy_udany := FALSE;
+			w_token_sesji := 'Pusty.';
 	END utworzenie_nowego_uzytk;
 
 	PROCEDURE log_uzytk(
 		a_login_email IN VARCHAR2,
-		w_czy_udany OUT BOOLEAN,
+		a_ip          IN VARCHAR2,
+		a_agent       IN VARCHAR2,
+		w_czy_udany   OUT BOOLEAN,
 		w_token_sesji OUT CHAR
 	)
 	IS
+		z_id          uzytkownicy.id%TYPE;
+		z_token_sesji uzytkownicy.token_sesji%TYPE;
+		z_n           NUMBER(1);
 	BEGIN
-		NULL;
+		w_czy_udany := FALSE;
+		w_token_sesji := 'Pusty.';
+		SELECT count(id) INTO z_n FROM uzytkownicy WHERE email = a_login_email;
+		IF z_n = 1 THEN
+			z_token_sesji := substr(dbms_random.string('A', dbms_random.value(32, 32)), 0, 32);
+			SELECT id INTO z_id FROM uzytkownicy WHERE email = a_login_email;
+			UPDATE uzytkownicy SET token_sesji = z_token_sesji, czas_wyg_sesji = current_timestamp + interval '20' minute WHERE id = z_id;
+			INSERT INTO logi (id_uzytk, czy_udany, ip, agent) VALUES
+				(z_id, 't', a_ip, a_agent);
+			COMMIT;
+			w_czy_udany := TRUE;
+			w_token_sesji := z_token_sesji;
+		END IF;
 	EXCEPTION
-			WHEN others THEN
-			NULL;
+		WHEN others THEN
+			ROLLBACK;
+			w_czy_udany := FALSE;
+			w_token_sesji := 'Pusty.';
 	END log_uzytk;
 
 	FUNCTION uzytk(a_login_email VARCHAR2) RETURN BOOLEAN
 	IS
-
+		z_n NUMBER(1);
 	BEGIN
-		RETURN FALSE;
+		SELECT count(id) INTO z_n FROM uzytkownicy WHERE email = a_login_email;
+		IF z_n = 1 THEN
+			RETURN TRUE;
+		ELSE
+			RETURN FALSE;
+		END IF;
 	END uzytk;
 
 	FUNCTION autent_arkusza(a_id NUMBER, a_haslo VARCHAR2) RETURN BOOLEAN
 	IS
+		z_haslo ewidencja_arkuszy.haslo%TYPE;
+		z_n NUMBER(1);
 
 	BEGIN
-		RETURN FALSE;
+		SELECT count(id) INTO z_n FROM ewidencja_arkuszy WHERE id = a_id;
+		IF z_n = 1 THEN 
+			SELECT haslo INTO z_haslo FROM ewidencja_arkuszy WHERE id = a_id;
+			IF a_haslo = z_haslo THEN
+				RETURN TRUE;
+			ELSE
+				RETURN FALSE;
+			END IF;
+		ELSE
+			RETURN FALSE;
+		END IF;
 	END autent_arkusza;
 
 	FUNCTION zaszyfr_post(a_tresc VARCHAR2, a_klucz VARCHAR2) RETURN VARCHAR2
