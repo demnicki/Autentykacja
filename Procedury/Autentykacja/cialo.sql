@@ -1,12 +1,12 @@
 CREATE OR REPLACE PACKAGE BODY autentykacja
 IS
 	PROCEDURE utworzenie_nowego_uzytk(
-		a_login_email IN VARCHAR2,
-		a_nazwa_uzytk IN VARCHAR2,
-		a_ip          IN VARCHAR2,
-		a_agent       IN VARCHAR2,
+		a_login_email IN uzytkownicy.email%TYPE,
+		a_nazwa_uzytk IN uzytkownicy.nazwa_uzytkownika%TYPE,
+		a_ip          IN logi.ip%TYPE,
+		a_agent       IN logi.agent%TYPE,
 		w_czy_udany   OUT BOOLEAN,
-		w_token_sesji OUT CHAR
+		w_token_sesji OUT uzytkownicy.token_sesji%TYPE
 	)
 	IS
 		z_id          uzytkownicy.id%TYPE;
@@ -34,11 +34,11 @@ IS
 	END utworzenie_nowego_uzytk;
 
 	PROCEDURE log_uzytk(
-		a_login_email IN VARCHAR2,
-		a_ip          IN VARCHAR2,
-		a_agent       IN VARCHAR2,
+		a_login_email IN uzytkownicy.email%TYPE,
+		a_ip          IN logi.ip%TYPE,
+		a_agent       IN logi.agent%TYPE,
 		w_czy_udany   OUT BOOLEAN,
-		w_token_sesji OUT CHAR
+		w_token_sesji OUT uzytkownicy.token_sesji%TYPE
 	)
 	IS
 		z_id          uzytkownicy.id%TYPE;
@@ -64,6 +64,31 @@ IS
 			w_czy_udany := FALSE;
 			w_token_sesji := 'Pusty.';
 	END log_uzytk;
+
+	PROCEDURE odswiez_token_sesji(
+		a_token_sesji IN uzytkownicy.token_sesji%TYPE,
+		w_id_uzytk    OUT uzytkownicy.id%TYPE,
+		w_czy_udany   OUT BOOLEAN
+	)
+	IS
+		z_n NUMBER(1);
+	BEGIN
+		SELECT count(id) INTO z_n FROM uzytkownicy WHERE token_sesji = a_token_sesji AND czas_wyg_sesji > current_timestamp;
+		IF z_n = 1 THEN
+			SELECT id INTO w_id_uzytk FROM uzytkownicy WHERE token_sesji = a_token_sesji;
+			UPDATE uzytkownicy SET czas_wyg_sesji = current_timestamp + interval '20' minute WHERE token_sesji = a_token_sesji;
+			COMMIT;
+			w_czy_udany := TRUE;
+		ELSE
+			w_czy_udany := FALSE;
+			w_id_uzytk := 0;
+		END IF;
+	EXCEPTION
+		WHEN others THEN
+			ROLLBACK;
+			w_czy_udany := FALSE;
+			w_id_uzytk := 0;
+	END odswiez_token_sesji;
 
 	FUNCTION uzytk(a_login_email VARCHAR2) RETURN BOOLEAN
 	IS

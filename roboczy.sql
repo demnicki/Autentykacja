@@ -1,20 +1,18 @@
 ﻿/* Podstawowa forma. */
 
 DECLARE
+	z_id_uzytk uzytkownicy.id%TYPE;
 	z_czy_udany BOOLEAN;
-	z_token_sesji VARCHAR2(100 CHAR);
 BEGIN
-		autentykacja.log_uzytk(
-			a_login_email => 'adam@wp.pl',
-			a_ip => '111',
-			a_agent => 'kom',
-			w_czy_udany => z_czy_udany,
-			w_token_sesji => z_token_sesji
-		);
+	autentykacja.odswiez_token_sesji(
+		a_token_sesji => 'd',
+		w_id_uzytk => z_id_uzytk,
+		w_czy_udany => z_czy_udany
+	);
 	IF z_czy_udany THEN
-		dbms_output.put_line('Udało się');
+		dbms_output.put_line('ID Użytkownika to: '||z_id_uzytk);
 	ELSE
-		dbms_output.put_line('Nie udało się');
+		dbms_output.put_line('Nie udało się.');
 	END IF;
 EXCEPTION
 	WHEN others THEN
