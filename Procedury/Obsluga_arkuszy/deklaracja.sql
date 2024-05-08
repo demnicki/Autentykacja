@@ -18,7 +18,7 @@ IS
 
 	PROCEDURE edytuj_post;
 
-	PROCEDURE utworz_arkusz;
+	PROCEDURE usun_post;
 
 	PROCEDURE gen_pdf;
 END obsluga_arkuszy;
