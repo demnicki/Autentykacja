@@ -19,8 +19,10 @@ IS
 	END pobierz_nbp;
 
 	FUNCTION kurs_eur RETURN t_t_kurs_walut PIPELINED AS
-		t_json JSON_ARRAY_T;
-		o_json JSON_OBJECT_T;
+		t_json        JSON_ARRAY_T;
+		o_json        JSON_OBJECT_T;
+		z_data_zmiany DATE;
+		z_kurs_zmiany NUMBER(6, 4);
 	BEGIN
 		kurs_walut.pobierz_nbp(
 			tablica_json => t_json
@@ -28,11 +30,12 @@ IS
 		IF t_json.get_size = 0 THEN
 			PIPE ROW(t_o_kurs_walut(sysdate , 0.0));
 			RETURN;
-
 		ELSIF t_json.get_size > 0 THEN
-			FOR i IN 1..t_json.get_size LOOP
-				o_json := TREAT (t_json.get(i) AS JSON_OBJECT_T);
-				PIPE ROW(t_o_kurs_walut(to_date(o_json.get('effectiveDate').to_string, 'RRRR-MM-DD'), o_json.get('mid').to_number));			
+			FOR i IN 0..t_json.get_size - 1 LOOP
+				o_json := json_object_t(t_json.get(i));
+				z_data_zmiany := o_json.get_date('effectiveDate');
+				z_kurs_zmiany := o_json.get_number('mid');
+				PIPE ROW(t_o_kurs_walut(z_data_zmiany, z_kurs_zmiany));	
 			END LOOP;
 			RETURN;
 		END IF;
@@ -42,4 +45,29 @@ IS
 			PIPE ROW(t_o_kurs_walut(sysdate , 0.0));
 			RETURN;
 	END kurs_eur;
+
+	FUNCTION gen_wykres(tablica CLOB) RETURN t_t_gen_wykres PIPELINED AS
+		t_json   JSON_ARRAY_T;
+		o_json   JSON_OBJECT_T;
+		z_imie   VARCHAR2(250 CHAR);
+		z_liczba NUMBER(6, 2);
+	BEGIN
+		t_json := json_array_t(tablica);
+		IF t_json.get_size = 0 THEN
+			PIPE ROW(t_o_gen_wykres('Pusta tablica', 0));	
+			RETURN;
+		ELSIF t_json.get_size > 0 THEN
+			FOR i IN 0..t_json.get_size - 1 LOOP
+				o_json := json_object_t(t_json.get(i));
+				z_imie := o_json.get_string('imie');
+				z_liczba := o_json.get_number('liczba');
+				PIPE ROW(t_o_gen_wykres(z_imie, z_liczba));	
+			END LOOP;
+			RETURN;
+		END IF;
+	EXCEPTION
+		WHEN others THEN
+			PIPE ROW(t_o_gen_wykres('Pusta tablica', 0));	
+			RETURN;
+	END gen_wykres;
 END kurs_walut;
